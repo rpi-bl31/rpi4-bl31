@@ -35,23 +35,12 @@ reboot    # DANGER! YOUR PI MAY NOT BOOT DUE TO BUGS
 
 #
 If you want to use the SMCs, use must make sure you are using it right. this code snippet should help. This is for custom TEE or a kernel object that will use out SMCs.
+YOU MUST CHANGE smc/bl31_smc.c TO YOU DEVICE MEMORY SIZE SO THIS WORKS! SAME FOR init/el3_mmu.s BECUASE THEY ARE AT DEFAULT CONFIGURED FOR 8GB OF RAM!
 
 ```
-/* ------------------------------------------------------------------------
- * SMC FIDs (vendor range: 0x8200_0000)
- * ------------------------------------------------------------------------ */
-#define SMC_FID_PING              0x82000000ULL
-#define SMC_FID_GET_VERSION       0x82000001ULL
-#define SMC_FID_SECSTORE_WRITE    0x82001000ULL
-#define SMC_FID_SECSTORE_READ     0x82001001ULL
-#define SMC_FID_KEY_IMPORT        0x82002000ULL
-#define SMC_FID_CRYPTO_ENCRYPT    0x82002010ULL
-#define SMC_FID_CRYPTO_DECRYPT    0x82002011ULL
-#define SMC_FID_CPU_ON            0x82003000ULL
-#define SMC_FID_CPU_OFF           0x82003001ULL
-#define SMC_FID_SYSTEM_RESET      0x82003002ULL
-
-/* Return codes */
+/* ------------------------
+ * adjust to your platform
+ * ------------------------ */
 #define SMC_OK                    0ULL
 #define SMC_ERROR                 ((uint64_t)-1)
 #define SMC_INVALID_PARAM         ((uint64_t)-2)
@@ -59,13 +48,38 @@ If you want to use the SMCs, use must make sure you are using it right. this cod
 #define SMC_ACCESS_DENIED         ((uint64_t)-4)
 #define SMC_INSUFFICIENT_SPACE    ((uint64_t)-5)
 
-/* Version */
 #define BL31_SVC_VER_MAJOR 1
-#define BL31_SVC_VER_MINOR 0
+#define BL31_SVC_VER_MINOR 2
 
-/* ------------------------------------------------------------------------
- * Non-secure RAM range for pointer validation
- * ------------------------------------------------------------------------ */
-#define NS_RAM_START 0x40000000ULL
-#define NS_RAM_END   0x47FFFFFFULL
+/* ----------------------------------------------
+ * Non-secure RAM range (adjust to your platform)
+ * ---------------------------------------------- */
+#define NS_RAM_START 0x40000000ULL   // ~1 GB offset, avoids MMIO and low firmware areas
+#define NS_RAM_END   0x1FFFFFFFFULL  // 8 GB RAM top
+
+#define SMC_FID_PING              0x82000000ULL
+#define SMC_FID_GET_VERSION       0x82000001ULL
+
+#define SMC_FID_SECSTORE_WRITE    0x82001000ULL
+#define SMC_FID_SECSTORE_READ     0x82001001ULL
+
+#define SMC_FID_KEY_IMPORT        0x82002000ULL
+#define SMC_FID_KEY_GENERATE      0x82002002ULL
+#define SMC_FID_KEY_CLEAR         0x82002003ULL
+#define SMC_FID_KEY_EXPORT        0x82002004ULL
+
+#define SMC_FID_CRYPTO_ENCRYPT    0x82002010ULL
+#define SMC_FID_CRYPTO_DECRYPT    0x82002011ULL
+
+#define SMC_FID_GET_CPU_FREQ      0x82004000ULL
+#define SMC_FID_GET_RANDOM        0x82004001ULL
+
+#define SMC_FID_CPU_ON            0x82003000ULL
+#define SMC_FID_CPU_OFF           0x82003001ULL
+#define SMC_FID_SYSTEM_RESET      0x82003002ULL
+
+#define SECSTORE_SIZE 4096
+
+#define MAX_KEYS 8
+#define KEY_SIZE 32
 ```
